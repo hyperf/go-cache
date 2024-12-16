@@ -42,11 +42,26 @@ func (c *Cache[T]) Has(key string) (bool, error) {
 	return c.Driver.Has(key)
 }
 
-func (c Cache[T]) Set(key string, value T, seconds int) error {
+func (c *Cache[T]) Set(key string, value T, seconds int) error {
 	res, err := c.Packer.Pack(value)
 	if err != nil {
 		return err
 	}
 
 	return c.Driver.Set(key, res, seconds)
+}
+
+func (c *Cache[T]) WithDriver(driver DriverInterface) *Cache[T] {
+	c.Driver = driver
+	return c
+}
+
+func (c *Cache[T]) WithPacker(p PackerInterface) *Cache[T] {
+	c.Packer = p
+	return c
+}
+
+func (c *Cache[T]) WithJsonPacker() *Cache[T] {
+	c.Packer = &JsonPacker{}
+	return c
 }
