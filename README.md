@@ -1,5 +1,7 @@
 # Golang 缓存组件
 
+[![Test](https://github.com/hyperf/go-cache/actions/workflows/test.yml/badge.svg)](https://github.com/hyperf/go-cache/actions/workflows/test.yml)
+
 ## 安装
 
 ```shell
