@@ -129,6 +129,7 @@ func (c *Cache[T]) RunAHead(key string, data *CacheAHead[T], fn func(T) error) e
 		locked := mu.TryLock()
 		if locked {
 			defer mu.Unlock()
+			defer locker.Manager.Del(key)
 		}
 
 		if locked && data.ExpiredAt <= uint64(time.Now().Unix()) {

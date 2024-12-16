@@ -19,6 +19,10 @@ func (c *LockerManager) Get(id string) *sync.Mutex {
 	return res
 }
 
+func (c *LockerManager) Del(id string) {
+	c.lockers.Delete(id)
+}
+
 var Manager = &LockerManager{
 	lockers: new(sync.Map),
 }
