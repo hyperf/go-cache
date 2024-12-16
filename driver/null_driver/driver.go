@@ -1,11 +1,13 @@
 package null_driver
 
-import "github.com/hyperf/go-cache/cache"
+import (
+	"github.com/hyperf/go-cache/error_code"
+)
 
 type NullDriver struct{}
 
 func (n NullDriver) Get(key string) (string, error) {
-	return "", cache.NotFound
+	return "", error_code.NotFound
 }
 
 func (n NullDriver) Has(key string) (bool, error) {

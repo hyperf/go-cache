@@ -19,36 +19,36 @@ type PackerInterface interface {
 }
 
 type Cache[T any] struct {
-	driver DriverInterface
-	packer PackerInterface
+	Driver DriverInterface
+	Packer PackerInterface
 }
 
 func (c *Cache[T]) Get(key string, defaultValue T) error {
-	res, err := c.driver.Get(key)
+	res, err := c.Driver.Get(key)
 	if err != nil {
 		return err
 	}
 
-	return c.packer.UnPack(res, defaultValue)
+	return c.Packer.UnPack(res, defaultValue)
 }
 
 func (c *Cache[T]) Has(key string) (bool, error) {
-	return c.driver.Has(key)
+	return c.Driver.Has(key)
 }
 
 func (c Cache[T]) Set(key string, value T, seconds int) error {
-	res, err := c.packer.Pack(value)
+	res, err := c.Packer.Pack(value)
 	if err != nil {
 		return err
 	}
 
-	return c.driver.Set(key, res, seconds)
+	return c.Driver.Set(key, res, seconds)
 }
 
 func NewCache[T any](driver DriverInterface, packer PackerInterface) *Cache[T] {
-	return &Cache[T]{driver: driver, packer: packer}
+	return &Cache[T]{Driver: driver, Packer: packer}
 }
 
 func NewJsonCache[T any](driver DriverInterface) *Cache[T] {
-	return &Cache[T]{driver: driver, packer: &JsonPacker{}}
+	return &Cache[T]{Driver: driver, Packer: &JsonPacker{}}
 }

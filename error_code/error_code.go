@@ -1,4 +1,4 @@
-package cache
+package error_code
 
 import "errors"
 
