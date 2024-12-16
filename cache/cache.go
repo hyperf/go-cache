@@ -3,6 +3,7 @@ package cache
 import (
 	"errors"
 	"github.com/hyperf/go-cache/error_code"
+	"time"
 )
 
 type CacheInterface[T any] interface {
@@ -27,6 +28,17 @@ type Cache[T any] struct {
 	Driver DriverInterface
 	Packer PackerInterface
 	Prefix string
+}
+
+type CacheAHead[T any] struct {
+	Data        T      `json:"data"`
+	ExpiredAt   uint64 `json:"expired_at"`
+	ExpiredTime int
+}
+
+func (a *CacheAHead[T]) fresh() *CacheAHead[T] {
+	a.ExpiredAt = uint64(time.Now().Unix()) + uint64(a.ExpiredTime) - 60
+	return a
 }
 
 func (c *Cache[T]) Key(key string) string {
@@ -81,6 +93,45 @@ func (c *Cache[T]) Run(key string, defaultValue T, seconds int, fn func(T) error
 	}
 
 	return nil
+}
+
+func (c *Cache[T]) RunAHead(key string, data *CacheAHead[T], fn func(T) error) error {
+	seconds := data.ExpiredTime
+	key = c.Key(key)
+
+	res, err := c.Driver.Get(key)
+	if err != nil {
+		return err
+	}
+
+	renew := func(d *CacheAHead[T], seconds int) error {
+		err = fn(d.Data)
+		if err != nil {
+			return err
+		}
+
+		res, err = c.Packer.Pack(d.fresh())
+		if err != nil {
+			return err
+		}
+
+		return c.Driver.Set(key, res, seconds)
+	}
+
+	if res != "" {
+		err = c.Packer.UnPack(res, data)
+		if err != nil {
+			return err
+		}
+
+		if data.ExpiredAt <= uint64(time.Now().Unix()) {
+			return renew(data, seconds)
+		}
+
+		return nil
+	}
+
+	return renew(data, seconds)
 }
 
 func (c *Cache[T]) WithDriver(driver DriverInterface) *Cache[T] {
