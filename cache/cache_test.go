@@ -92,7 +92,8 @@ func TestCache_RunAHead(t *testing.T) {
 	}))
 
 	fooCache := &Cache[*Foo]{Driver: driver, Packer: &JsonPacker{}, Prefix: "c3:"}
-	key := "123"
+	key := strconv.FormatInt(time.Now().Unix(), 10)
+
 	data := &CacheAHead[*Foo]{
 		Data:        &Foo{},
 		ExpiredTime: 100,

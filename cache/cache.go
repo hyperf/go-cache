@@ -3,6 +3,7 @@ package cache
 import (
 	"errors"
 	"github.com/hyperf/go-cache/error_code"
+	"github.com/hyperf/go-cache/locker"
 	"time"
 )
 
@@ -124,7 +125,13 @@ func (c *Cache[T]) RunAHead(key string, data *CacheAHead[T], fn func(T) error) e
 			return err
 		}
 
-		if data.ExpiredAt <= uint64(time.Now().Unix()) {
+		mu := locker.Manager.Get(key)
+		locked := mu.TryLock()
+		if locked {
+			defer mu.Unlock()
+		}
+
+		if locked && data.ExpiredAt <= uint64(time.Now().Unix()) {
 			return renew(data, seconds)
 		}
 
