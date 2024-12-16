@@ -58,3 +58,29 @@ func TestCacheGoZeroDriver(t *testing.T) {
 
 	assert.Equal(t, 100, result.Id)
 }
+
+func TestCache_Run(t *testing.T) {
+	driver := go_zero_driver.NewGoZeroDriver(redis.MustNewRedis(redis.RedisConf{
+		Host: "127.0.0.1:6379",
+		Type: "node",
+	}))
+
+	fooCache := &Cache[*Foo]{Driver: driver, Packer: &JsonPacker{}}
+	key := "c:" + strconv.FormatInt(time.Now().Unix(), 10)
+
+	var result Foo
+	_ = fooCache.Run(key, &result, 60, func(foo *Foo) error {
+		foo.Id = 1
+		return nil
+	})
+
+	assert.Equal(t, 1, result.Id)
+
+	var result2 Foo
+	_ = fooCache.Run(key, &result2, 60, func(foo *Foo) error {
+		foo.Id = 2
+		return nil
+	})
+
+	assert.Equal(t, 1, result2.Id)
+}

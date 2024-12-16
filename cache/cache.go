@@ -1,6 +1,9 @@
 package cache
 
-import "github.com/hyperf/go-cache/error_code"
+import (
+	"errors"
+	"github.com/hyperf/go-cache/error_code"
+)
 
 type CacheInterface[T any] interface {
 	Get(key string, defaultValue T) error
@@ -49,6 +52,29 @@ func (c *Cache[T]) Set(key string, value T, seconds int) error {
 	}
 
 	return c.Driver.Set(key, res, seconds)
+}
+
+func (c *Cache[T]) Run(key string, defaultValue T, seconds int, fn func(T) error) error {
+	err := c.Get(key, defaultValue)
+	if err != nil && !errors.Is(err, error_code.NotFound) {
+		return err
+	}
+
+	if err == nil {
+		return nil
+	}
+
+	err = fn(defaultValue)
+	if err != nil {
+		return err
+	}
+
+	err = c.Set(key, defaultValue, seconds)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (c *Cache[T]) WithDriver(driver DriverInterface) *Cache[T] {
