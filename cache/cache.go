@@ -26,10 +26,15 @@ type PackerInterface interface {
 type Cache[T any] struct {
 	Driver DriverInterface
 	Packer PackerInterface
+	Prefix string
+}
+
+func (c *Cache[T]) Key(key string) string {
+	return c.Prefix + key
 }
 
 func (c *Cache[T]) Get(key string, defaultValue T) error {
-	res, err := c.Driver.Get(key)
+	res, err := c.Driver.Get(c.Key(key))
 	if err != nil {
 		return err
 	}
@@ -42,7 +47,7 @@ func (c *Cache[T]) Get(key string, defaultValue T) error {
 }
 
 func (c *Cache[T]) Has(key string) (bool, error) {
-	return c.Driver.Has(key)
+	return c.Driver.Has(c.Key(key))
 }
 
 func (c *Cache[T]) Set(key string, value T, seconds int) error {
@@ -51,10 +56,11 @@ func (c *Cache[T]) Set(key string, value T, seconds int) error {
 		return err
 	}
 
-	return c.Driver.Set(key, res, seconds)
+	return c.Driver.Set(c.Key(key), res, seconds)
 }
 
 func (c *Cache[T]) Run(key string, defaultValue T, seconds int, fn func(T) error) error {
+	key = c.Key(key)
 	err := c.Get(key, defaultValue)
 	if err != nil && !errors.Is(err, error_code.NotFound) {
 		return err
