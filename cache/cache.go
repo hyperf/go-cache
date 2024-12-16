@@ -1,5 +1,7 @@
 package cache
 
+import "github.com/hyperf/go-cache/error_code"
+
 type CacheInterface[T any] interface {
 	Get(key string, defaultValue T) error
 	Has(key string) (bool, error)
@@ -29,6 +31,10 @@ func (c *Cache[T]) Get(key string, defaultValue T) error {
 		return err
 	}
 
+	if res == "" {
+		return error_code.NotFound
+	}
+
 	return c.Packer.UnPack(res, defaultValue)
 }
 
@@ -43,12 +49,4 @@ func (c Cache[T]) Set(key string, value T, seconds int) error {
 	}
 
 	return c.Driver.Set(key, res, seconds)
-}
-
-func NewCache[T any](driver DriverInterface, packer PackerInterface) *Cache[T] {
-	return &Cache[T]{Driver: driver, Packer: packer}
-}
-
-func NewJsonCache[T any](driver DriverInterface) *Cache[T] {
-	return &Cache[T]{Driver: driver, Packer: &JsonPacker{}}
 }

@@ -21,4 +21,6 @@ jobs:
       - name: Fetch Repository
         uses: actions/checkout@v2
       - name: Run Test
-        run: go test ./... -v -race
+        run: |
+          docker run --name redis -p 6379:6379 -d redis
+          go test ./... -v -race

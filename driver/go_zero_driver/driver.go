@@ -20,3 +20,9 @@ func (g *GoZeroDriver) Set(key string, value string, seconds int) error {
 	}
 	return g.r.Setex(key, value, seconds)
 }
+
+func NewGoZeroDriver(r *redis.Redis) *GoZeroDriver {
+	return &GoZeroDriver{
+		r: r,
+	}
+}
