@@ -66,7 +66,7 @@ func TestCache_Run(t *testing.T) {
 	}))
 
 	fooCache := &Cache[*Foo]{Driver: driver, Packer: &JsonPacker{}}
-	key := "c:" + strconv.FormatInt(time.Now().Unix(), 10)
+	key := "c2:" + strconv.FormatInt(time.Now().Unix(), 10)
 
 	var result Foo
 	_ = fooCache.Run(key, &result, 60, func(foo *Foo) error {
